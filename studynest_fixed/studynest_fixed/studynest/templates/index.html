@@ -1,0 +1,1419 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyNest — Focus App</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#f5f0e8;--warm:#ede8dc;--paper:#faf8f3;
+  --ink:#1a1712;--muted:#8a8070;--border:#d4cfc4;
+  --moss:#4a6741;--moss2:#6a8a61;--rust:#c4512a;--rust2:#e8744a;
+  --gold:#c49a2a;--sky:#3a6494;--lav:#7a6494;
+  --sh:rgba(26,23,18,.07);--shm:rgba(26,23,18,.15);
+  --ai1:#6366f1;--ai2:#8b5cf6;--ai3:#06b6d4;
+}
+[data-theme="dark"]{
+  --cream:#0f0e0c;--warm:#1a1815;--paper:#141210;
+  --ink:#e8e4da;--muted:#7a7268;--border:#2e2b26;
+  --moss:#5a8a50;--moss2:#7aaa70;--rust:#e06840;--rust2:#f08860;
+  --gold:#d4aa3a;--sky:#5a84b4;--lav:#9a84b4;
+  --sh:rgba(0,0,0,.25);--shm:rgba(0,0,0,.45);
+}
+[data-theme="dark"] body::before{opacity:.04}
+[data-theme="dark"] .lbox,[data-theme="dark"] .card,[data-theme="dark"] #chatPanel,
+[data-theme="dark"] .modal,[data-theme="dark"] .banner,[data-theme="dark"] #aiPanel{border-color:var(--border)}
+[data-theme="dark"] .tbtn.play{box-shadow:0 4px 14px rgba(90,138,80,.25)}
+[data-theme="dark"] .lf,[data-theme="dark"] .ti,[data-theme="dark"] .sinp,
+[data-theme="dark"] .cinp,[data-theme="dark"] .minp,[data-theme="dark"] .uiinp{background:var(--warm);color:var(--ink)}
+[data-theme="dark"] .prisel{background:var(--warm);color:var(--ink)}
+[data-theme="dark"] .ai-search-inp{background:var(--warm);color:var(--ink)}
+[data-theme="dark"] .ai-model-card{background:var(--warm);border-color:var(--border)}
+[data-theme="dark"] .ai-answer-card{background:var(--warm)}
+[data-theme="dark"] .ai-best-box{background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(6,182,212,.05))}
+*{transition:background-color .25s,border-color .25s,color .12s}
+.tbtn,.tbtn.play,.addbtn,.lbtn,.mbtn,.mbtn2,.sbtn,.csend,.racc,.rrej,.chk,.srbtn,.delbtn,.signout{transition:all .15s !important}
+
+/* ═══════════════════════════════
+   ENTRANCE ANIMATIONS
+═══════════════════════════════ */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.4}70%{transform:scale(1.18);opacity:0}100%{transform:scale(1);opacity:0}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes nslide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tslide{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes typingDot{0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1}}
+@keyframes aiGlow{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.3)}50%{box-shadow:0 0 0 8px rgba(99,102,241,0)}}
+
+.animate-fade-up{animation:fadeInUp .55s cubic-bezier(.22,1,.36,1) both}
+.animate-fade-down{animation:fadeInDown .55s cubic-bezier(.22,1,.36,1) both}
+.animate-scale{animation:scaleIn .45s cubic-bezier(.22,1,.36,1) both}
+.d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.2s}
+.d4{animation-delay:.28s}.d5{animation-delay:.36s}.d6{animation-delay:.44s}
+
+/* DARK TOGGLE */
+.dmtog{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--warm);color:var(--ink);font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.dmtog:hover{border-color:var(--moss);transform:rotate(20deg) scale(1.08)}
+
+html{font-size:16px}
+body{background:var(--cream);color:var(--ink);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+
+/* ══ LOGIN ══ */
+#loginScreen{position:fixed;inset:0;background:var(--cream);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px}
+.lbox{background:var(--paper);border:1px solid var(--border);border-radius:28px;padding:44px 36px;max-width:420px;width:100%;box-shadow:0 20px 60px var(--shm);text-align:center;animation:scaleIn .5s cubic-bezier(.34,1.56,.64,1)}
+.llogo{font-family:'DM Serif Display',serif;font-size:2.2rem;margin-bottom:4px}.llogo em{color:var(--moss);font-style:italic}
+.ltag{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:2px;margin-bottom:30px}
+.ltabs{display:flex;background:var(--warm);border-radius:14px;padding:4px;gap:4px;margin-bottom:26px;border:1px solid var(--border)}
+.ltab{flex:1;padding:9px;border:none;border-radius:11px;background:transparent;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s}
+.ltab.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 4px var(--sh)}
+.lf{width:100%;background:var(--warm);border:1.5px solid var(--border);border-radius:13px;padding:13px 16px;font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--ink);outline:none;margin-bottom:12px;transition:border-color .2s}
+.lf:focus{border-color:var(--moss)}.lf::placeholder{color:var(--muted)}
+.idhint{background:rgba(74,103,65,.07);border:1px solid rgba(74,103,65,.18);border-radius:10px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:.67rem;color:var(--moss);margin-bottom:14px;text-align:left}
+.lbtn{width:100%;padding:14px;border-radius:13px;border:none;background:var(--moss);color:#fff;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:8px}
+.lbtn:hover{background:var(--moss2);transform:translateY(-1px)}
+.lerr{font-family:'DM Mono',monospace;font-size:.67rem;color:var(--rust);min-height:14px;margin-bottom:10px}
+.hint{text-align:center;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);margin-top:6px}
+.hint strong{color:var(--rust)}
+
+/* ══ APP ══ */
+#app{display:none;position:relative;z-index:1}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px;flex-wrap:wrap;gap:12px}
+.logo{font-family:'DM Serif Display',serif;font-size:1.8rem;letter-spacing:-.5px}.logo em{color:var(--moss);font-style:italic}
+.topright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.clockpill{font-family:'DM Mono',monospace;font-size:.83rem;color:var(--muted);background:var(--warm);padding:6px 14px;border-radius:100px;border:1px solid var(--border)}
+.streakpill{display:flex;align-items:center;gap:6px;background:var(--moss);color:#fff;padding:6px 14px;border-radius:100px;font-size:.78rem;font-weight:600;animation:float 3s ease-in-out infinite}
+.userpill{display:flex;align-items:center;gap:8px;background:var(--warm);border:1px solid var(--border);padding:6px 14px;border-radius:100px}
+.uav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;font-weight:700;flex-shrink:0}
+.uname{font-size:.82rem;font-weight:600}.uid2{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted)}
+.signout{background:none;border:1px solid var(--border);border-radius:100px;padding:6px 12px;font-size:.75rem;color:var(--muted);cursor:pointer;transition:all .2s}
+.signout:hover{border-color:var(--rust);color:var(--rust)}
+
+/* AI SEARCH TRIGGER BTN */
+.ai-trigger-btn{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:100px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--ai1),var(--ai2));background-size:200% 200%;animation:gradMove 4s ease infinite;transition:all .2s;position:relative;overflow:hidden}
+.ai-trigger-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);opacity:0;transition:opacity .2s}
+.ai-trigger-btn:hover::before{opacity:1}
+.ai-trigger-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.4)}
+.ai-trigger-btn .ai-dot{width:7px;height:7px;background:#fff;border-radius:50%;animation:pulse-ring 2s ease-out infinite}
+
+/* ══ GRID ══ */
+.grid{display:grid;grid-template-columns:1fr 1fr 330px;gap:18px}
+@media(max-width:980px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 2px 12px var(--sh);transition:box-shadow .3s,transform .3s}
+.card:hover{box-shadow:0 6px 28px var(--shm);transform:translateY(-2px)}
+.clabel{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:7px}
+.clabel .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* ══ TIMER ══ */
+.timer-card{grid-column:1;grid-row:1}
+.tw{display:flex;flex-direction:column;align-items:center;gap:20px}
+.ring-outer{position:relative;width:186px;height:186px}
+.ring-outer svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--warm);stroke-width:10}
+.ring-prog{fill:none;stroke:var(--moss);stroke-width:10;stroke-linecap:round;stroke-dasharray:534;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear,stroke .4s}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.rtime{font-family:'DM Serif Display',serif;font-size:2.7rem;line-height:1;letter-spacing:-2px;transition:all .3s}
+.rlbl{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+.mtabs{display:flex;background:var(--warm);border-radius:12px;padding:4px;gap:2px;border:1px solid var(--border);width:100%}
+.mtab{flex:1;padding:7px 4px;border:none;background:transparent;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.73rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s}
+.mtab.on{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 4px var(--sh)}
+.tctrls{display:flex;gap:12px;align-items:center;justify-content:center;width:100%}
+.tbtn{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--border);background:var(--warm);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tbtn:hover{background:var(--border);transform:scale(1.05)}
+.tbtn.play{width:58px;height:58px;font-size:1.3rem;background:var(--moss);border-color:var(--moss);color:#fff;box-shadow:0 4px 14px rgba(74,103,65,.3)}
+.tbtn.play:hover{background:var(--moss2);transform:scale(1.08)}
+.tbtn.play.running{animation:aiGlow 2s ease-in-out infinite}
+.pdots{display:flex;gap:7px}
+.pdot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:background .4s,transform .3s}
+.pdot.lit{background:var(--moss);transform:scale(1.2)}
+
+/* ══ STATS ══ */
+.stats-card{grid-column:2;grid-row:1}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stile{background:var(--warm);border-radius:13px;padding:14px;border:1px solid var(--border);transition:transform .2s}
+.stile:hover{transform:scale(1.03)}
+.snum{font-family:'DM Serif Display',serif;font-size:1.9rem;line-height:1;margin-bottom:3px;animation:countUp .5s ease both}
+.g{color:var(--moss)}.r{color:var(--rust)}.o{color:var(--gold)}.b{color:var(--sky)}
+.sname{font-size:.7rem;color:var(--muted);font-weight:500}
+.goalbox{background:var(--warm);border-radius:13px;padding:13px 15px;border:1px solid var(--border)}
+.goaltop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.goaltitle{font-weight:600;font-size:.83rem}.goalpct{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--moss)}
+.goalbar{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.goalfill{height:100%;background:linear-gradient(90deg,var(--moss),var(--gold));border-radius:4px;transition:width .7s cubic-bezier(.22,1,.36,1);width:0%}
+
+/* ══ NOTIFICATIONS ══ */
+.notif-card{grid-column:3;grid-row:1/3}
+@media(max-width:980px){.notif-card{grid-column:1/3;grid-row:3}}
+@media(max-width:640px){.notif-card{grid-column:1;grid-row:auto}}
+.nhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.nscroll{display:flex;flex-direction:column;gap:8px;max-height:490px;overflow-y:auto;padding-right:3px}
+.nscroll::-webkit-scrollbar{width:3px}.nscroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.nitem{background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:11px 13px;display:flex;gap:9px;align-items:flex-start;animation:nslide .35s cubic-bezier(.34,1.56,.64,1);border-left:3px solid var(--border)}
+.nitem.task{border-left-color:var(--moss)}.nitem.timer{border-left-color:var(--gold)}.nitem.req{border-left-color:var(--sky)}.nitem.chat{border-left-color:var(--rust)}
+.nico{font-size:1rem;flex-shrink:0;margin-top:1px}
+.nbody{flex:1;min-width:0}
+.ntitle{font-weight:600;font-size:.8rem;margin-bottom:2px}
+.ndesc{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ntime{font-family:'DM Mono',monospace;font-size:.57rem;color:var(--muted);margin-top:3px}
+.clrbtn{background:none;border:none;font-size:.7rem;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;transition:color .2s}
+.clrbtn:hover{color:var(--rust)}
+
+/* ══ TASKS ══ */
+.todo-card{grid-column:1/3;grid-row:2}
+.addrow{display:flex;gap:8px;margin-bottom:13px;flex-wrap:wrap}
+.ti{flex:1;min-width:180px;background:var(--warm);border:1.5px solid var(--border);border-radius:12px;padding:11px 15px;font-family:'Outfit',sans-serif;font-size:.88rem;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.ti:focus{border-color:var(--moss);box-shadow:0 0 0 3px rgba(74,103,65,.1)}.ti::placeholder{color:var(--muted)}
+.prisel{background:var(--warm);border:1.5px solid var(--border);border-radius:12px;padding:11px 10px;font-family:'Outfit',sans-serif;font-size:.84rem;color:var(--ink);outline:none;cursor:pointer}
+.addbtn{padding:11px 20px;border-radius:12px;border:none;background:var(--moss);color:#fff;font-family:'Outfit',sans-serif;font-size:.87rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.addbtn:hover{background:var(--moss2);transform:translateY(-2px);box-shadow:0 4px 14px rgba(74,103,65,.3)}
+.twrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:9px;max-height:320px;overflow-y:auto;padding-right:3px}
+.twrap::-webkit-scrollbar{width:3px}.twrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.tcard{background:var(--warm);border:1.5px solid var(--border);border-radius:13px;padding:13px 15px;display:flex;align-items:flex-start;gap:9px;animation:tslide .3s ease;transition:border-color .2s,opacity .2s,transform .2s,box-shadow .2s}
+.tcard:hover{border-color:var(--moss);transform:translateY(-2px);box-shadow:0 4px 14px var(--sh)}.tcard.done-c{opacity:.55}
+.chk{width:21px;height:21px;border-radius:6px;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s;font-size:.7rem;color:#fff}
+.chk.ck{background:var(--moss);border-color:var(--moss)}
+.tinfo{flex:1;min-width:0}
+.ttxt{font-size:.87rem;font-weight:500;word-break:break-word}
+.ttxt.stk{text-decoration:line-through;opacity:.5}
+.tmeta{display:flex;align-items:center;gap:5px;margin-top:4px}
+.pbadge{font-size:.58rem;font-family:'DM Mono',monospace;letter-spacing:1px;padding:2px 7px;border-radius:100px;font-weight:500}
+.ph{background:rgba(196,81,42,.12);color:var(--rust)}.pm{background:rgba(196,154,42,.12);color:var(--gold)}.pl{background:rgba(74,103,65,.12);color:var(--moss)}
+.delbtn{background:none;border:none;color:var(--border);cursor:pointer;font-size:.88rem;padding:2px;border-radius:5px;transition:all .15s;flex-shrink:0}
+.delbtn:hover{color:var(--rust);background:rgba(196,81,42,.08)}
+.emptyt{grid-column:1/-1;text-align:center;padding:28px 0;color:var(--muted);font-size:.8rem}
+.emptyt span{display:block;font-size:2.2rem;margin-bottom:7px;animation:float 3s ease-in-out infinite}
+.tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:13px;gap:10px;flex-wrap:wrap}
+.prow{display:flex;align-items:center;gap:9px;flex:1}
+.pbar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--moss),var(--gold));border-radius:3px;transition:width .6s cubic-bezier(.22,1,.36,1)}
+.plbl{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);white-space:nowrap}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--border);border:none;cursor:default;opacity:.3;padding:0;flex-shrink:0}
+.chat-open-btn{position:relative;display:inline-flex;align-items:center;gap:6px;padding:6px 13px;background:rgba(74,103,65,.13);border:1.5px solid rgba(74,103,65,.28);border-radius:100px;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:600;color:var(--moss);cursor:pointer;transition:all .18s;white-space:nowrap;flex-shrink:0}
+.chat-open-btn:hover{background:var(--moss);color:#fff;border-color:var(--moss);transform:translateY(-1px)}
+[data-theme="dark"] .chat-open-btn{background:rgba(90,138,80,.15);border-color:rgba(90,138,80,.3);color:var(--moss)}
+
+/* ══ OVERLAYS ══ */
+.ov{position:fixed;inset:0;background:rgba(26,23,18,.52);backdrop-filter:blur(7px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s}
+.ov.show{opacity:1;pointer-events:all}
+.modal{background:var(--paper);border:1px solid var(--border);border-radius:24px;padding:34px 30px 30px;max-width:400px;width:100%;position:relative;transform:translateY(22px) scale(.97);transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px var(--shm)}
+.ov.show .modal{transform:translateY(0) scale(1)}
+.mclose{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--warm);color:var(--muted);font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mclose:hover{color:var(--rust);border-color:var(--rust)}
+.mico{font-size:2.2rem;display:block;margin-bottom:8px}
+.mtitle{font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:4px}
+.msub{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);margin-bottom:22px;letter-spacing:.3px}
+.minp{width:100%;background:var(--warm);border:2px solid var(--border);border-radius:12px;padding:13px;font-family:'DM Mono',monospace;font-size:1.2rem;letter-spacing:6px;text-align:center;color:var(--ink);outline:none;margin-bottom:9px;transition:border-color .2s}
+.minp:focus{border-color:var(--rust)}.minp.err{border-color:var(--rust);animation:sh .35s}
+.merr{font-family:'DM Mono',monospace;font-size:.66rem;color:var(--rust);text-align:center;min-height:14px;margin-bottom:10px}
+.mbtn{width:100%;padding:13px;border-radius:12px;border:none;background:var(--moss);color:#fff;font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;transition:all .15s}
+.mbtn:hover{background:var(--moss2);transform:translateY(-1px)}
+.mbtn2{width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--warm);color:var(--ink);font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s;margin-top:8px}
+.mbtn2:hover{border-color:var(--moss);color:var(--moss)}
+
+/* ══ CHAT PANEL ══ */
+#chatPanel{position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--paper);border-left:1px solid var(--border);box-shadow:-4px 0 28px var(--shm);z-index:400;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+#chatPanel.open{transform:translateX(0)}
+@media(max-width:480px){#chatPanel{width:100%}}
+.cphead{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--warm);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.cpav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;font-weight:700;flex-shrink:0}
+.cpinfo{flex:1;min-width:0}
+.cpname{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpsub{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted)}
+.cpclose{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--paper);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .15s;flex-shrink:0}
+.cpclose:hover{color:var(--rust);border-color:var(--rust)}
+.blurpill{font-family:'DM Mono',monospace;font-size:.6rem;padding:3px 9px;border-radius:100px;background:rgba(196,154,42,.1);border:1px solid var(--gold);color:var(--gold);letter-spacing:1px;flex-shrink:0;transition:all .3s}
+.blurpill.red{background:rgba(196,81,42,.1);border-color:var(--rust);color:var(--rust)}
+.cptabs{display:flex;border-bottom:1px solid var(--border);background:var(--warm);flex-shrink:0}
+.cptab{flex:1;padding:10px;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.cptab.on{color:var(--ink);border-bottom-color:var(--moss)}
+.carea{flex:1;overflow-y:auto;padding:12px}
+.carea::-webkit-scrollbar{width:3px}.carea::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.sbar{display:flex;gap:8px;margin-bottom:12px}
+.sinp{flex:1;background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:9px 13px;font-family:'Outfit',sans-serif;font-size:.83rem;color:var(--ink);outline:none;transition:border-color .2s}
+.sinp:focus{border-color:var(--sky)}.sinp::placeholder{color:var(--muted)}
+.sbtn{padding:9px 14px;border-radius:10px;border:none;background:var(--sky);color:#fff;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .2s}
+.sbtn:hover{opacity:.85}
+.sres{background:var(--warm);border:1.5px solid var(--border);border-radius:12px;padding:12px 13px;margin-bottom:9px;display:flex;align-items:center;gap:10px;animation:tslide .3s ease}
+.srav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;font-weight:700;flex-shrink:0}
+.srinfo{flex:1;min-width:0}
+.srname{font-weight:600;font-size:.85rem}.srid{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted)}
+.srbtn{padding:7px 12px;border-radius:9px;border:none;font-size:.74rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;white-space:nowrap}
+.srbtn.add{background:var(--sky);color:#fff}.srbtn.pend{background:var(--warm);border:1px solid var(--border);color:var(--muted);cursor:default}
+.srbtn.chatbtn{background:rgba(74,103,65,.12);color:var(--moss);border:1px solid rgba(74,103,65,.22)}.srbtn.chatbtn:hover{background:var(--moss);color:#fff}
+.srbtn.acc{background:var(--moss);color:#fff}.srbtn.acc:hover{background:var(--moss2)}
+.seclbl{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.crow{background:var(--warm);border:1px solid var(--border);border-radius:11px;padding:10px 12px;display:flex;align-items:center;gap:9px;margin-bottom:7px;cursor:pointer;transition:all .2s}
+.crow:hover{border-color:var(--moss)}.crow.arow{border-color:var(--moss);background:rgba(74,103,65,.06)}
+.crav{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff;font-weight:700;flex-shrink:0}
+.crinfo{flex:1;min-width:0}
+.crname{font-weight:600;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crprev{font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow{background:rgba(58,100,148,.06);border:1px solid rgba(58,100,148,.2);border-radius:11px;padding:10px 12px;display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.ract{display:flex;gap:5px;flex-shrink:0}
+.racc{padding:5px 10px;border-radius:8px;border:none;background:var(--moss);color:#fff;font-size:.72rem;font-weight:600;cursor:pointer}.racc:hover{background:var(--moss2)}
+.rrej{padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--warm);color:var(--muted);font-size:.72rem;font-weight:600;cursor:pointer}.rrej:hover{color:var(--rust);border-color:var(--rust)}
+.emptyc{text-align:center;padding:18px 0;color:var(--muted);font-size:.78rem}
+.emptyc span{display:block;font-size:1.8rem;margin-bottom:5px}
+.chatview{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.nocs{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:.82rem;text-align:center;padding:20px}
+.nocs span{font-size:2.4rem;margin-bottom:10px;display:block}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.msgs::-webkit-scrollbar{width:3px}.msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.msg{max-width:75%;padding:9px 13px;border-radius:15px;font-size:.85rem;line-height:1.5;transition:filter .5s ease;word-break:break-word;animation:fadeInUp .3s ease both}
+.msg.me{align-self:flex-end;background:var(--moss);color:#fff;border-bottom-right-radius:4px}
+.msg.them{align-self:flex-start;background:var(--warm);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.blurred{filter:blur(7px);cursor:pointer}.msg.blurred:hover{filter:blur(4px)}
+.mtime{font-family:'DM Mono',monospace;font-size:.55rem;opacity:.5;margin-top:3px}
+.cinputrow{padding:12px 14px;border-top:1px solid var(--border);background:var(--warm);display:flex;gap:8px;flex-shrink:0}
+.cinp{flex:1;background:var(--paper);border:1.5px solid var(--border);border-radius:100px;padding:9px 16px;font-family:'Outfit',sans-serif;font-size:.84rem;color:var(--ink);outline:none;transition:border-color .2s}
+.cinp:focus{border-color:var(--rust)}
+.csend{width:40px;height:40px;border-radius:50%;border:none;background:var(--rust);color:#fff;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.csend:hover{background:var(--rust2);transform:scale(1.1)}
+.uinline{align-self:center;background:rgba(196,81,42,.06);border:1px solid rgba(196,81,42,.2);border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;align-items:center;gap:7px;width:240px}
+.uititle{font-weight:700;font-size:.82rem;color:var(--rust)}
+.uisub{font-size:.67rem;color:var(--muted);text-align:center;font-family:'DM Mono',monospace;line-height:1.5}
+.uirow{display:flex;gap:6px;width:100%}
+.uiinp{flex:1;background:var(--warm);border:1.5px solid var(--border);border-radius:9px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:.85rem;letter-spacing:4px;text-align:center;color:var(--ink);outline:none;transition:border-color .2s}
+.uiinp:focus{border-color:var(--rust)}.uiinp.err{border-color:var(--rust);animation:sh .35s}
+.uibtn{padding:8px 13px;border-radius:9px;border:none;background:var(--rust);color:#fff;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap}.uibtn:hover{background:var(--rust2)}
+.uierr{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--rust);min-height:12px}
+
+/* ══ BANNER ══ */
+.banner{position:fixed;top:18px;right:18px;background:var(--moss);color:#fff;padding:13px 18px;border-radius:15px;font-size:.86rem;font-weight:600;box-shadow:0 8px 28px rgba(74,103,65,.4);z-index:999;transform:translateX(160%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:9px;max-width:280px}
+.banner.in{transform:translateX(0)}
+.chat-notif-badge{position:absolute;top:-4px;right:-4px;background:var(--rust);color:#fff;border-radius:50%;width:16px;height:16px;font-size:.55rem;font-weight:700;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sdot-wrap{position:relative;display:inline-flex;cursor:pointer}
+
+/* ══════════════════════════════════
+   AI SEARCH PANEL
+══════════════════════════════════ */
+#aiPanel{position:fixed;left:0;top:0;bottom:0;width:460px;background:var(--paper);border-right:1px solid var(--border);box-shadow:4px 0 32px var(--shm);z-index:450;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .38s cubic-bezier(.4,0,.2,1)}
+#aiPanel.open{transform:translateX(0)}
+@media(max-width:500px){#aiPanel{width:100%}}
+.ai-header{padding:18px 18px 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--warm)}
+.ai-header-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ai-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--ai1),var(--ai2));display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.ai-title{font-family:'DM Serif Display',serif;font-size:1.15rem}
+.ai-title em{color:var(--ai1);font-style:italic}
+.ai-subtitle{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:1.5px}
+.ai-close{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--paper);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .15s;flex-shrink:0;margin-left:auto}
+.ai-close:hover{color:var(--rust);border-color:var(--rust)}
+.ai-search-row{display:flex;gap:8px}
+.ai-search-inp{flex:1;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;padding:11px 14px;font-family:'Outfit',sans-serif;font-size:.88rem;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.ai-search-inp:focus{border-color:var(--ai1);box-shadow:0 0 0 3px rgba(99,102,241,.1)}.ai-search-inp::placeholder{color:var(--muted)}
+.ai-go-btn{padding:11px 16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--ai1),var(--ai2));color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.ai-go-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,.4)}
+.ai-go-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* Chips */
+.ai-chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.ai-chip{background:var(--warm);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.72rem;color:var(--muted);cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;font-weight:500}
+.ai-chip:hover{border-color:var(--ai1);color:var(--ai1);background:rgba(99,102,241,.05)}
+
+/* Body */
+.ai-body{flex:1;overflow-y:auto;padding:16px 18px}
+.ai-body::-webkit-scrollbar{width:3px}.ai-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Model cards */
+.ai-models-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.ai-models-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+.ai-model-card{background:var(--warm);border:1.5px solid var(--border);border-radius:13px;padding:11px 12px;transition:all .3s;position:relative;overflow:hidden}
+.ai-model-card::after{content:'';position:absolute;bottom:0;left:0;height:3px;width:0%;border-radius:0 0 13px 13px;transition:width .4s ease}
+.ai-model-card.thinking::after{width:60%;background:var(--gold);animation:shimmer 1.4s linear infinite;background-size:400px 100%;background-image:linear-gradient(90deg,var(--gold) 25%,#f5d060 50%,var(--gold) 75%)}
+.ai-model-card.done::after{width:100%;background:var(--moss)}
+.ai-model-card.best{border-color:var(--gold);box-shadow:0 0 0 2px rgba(196,154,42,.2)}
+.ai-model-icon{font-size:1.3rem;margin-bottom:4px}
+.ai-model-name{font-size:.75rem;font-weight:700}
+.ai-model-org{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted)}
+.ai-model-status{font-family:'DM Mono',monospace;font-size:.58rem;margin-top:5px;color:var(--muted)}
+.ai-model-card.thinking .ai-model-status{color:var(--gold)}
+.ai-model-card.done .ai-model-status{color:var(--moss)}
+.ai-model-card.best .ai-model-status{color:var(--gold)}
+.ai-best-badge{position:absolute;top:6px;right:6px;background:var(--gold);color:#fff;font-size:.55rem;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:6px;letter-spacing:.5px;opacity:0;transition:opacity .4s}
+.ai-model-card.best .ai-best-badge{opacity:1}
+
+/* Typing dots */
+.typing-dots{display:inline-flex;gap:3px;align-items:center}
+.typing-dots span{width:5px;height:5px;background:var(--gold);border-radius:50%;animation:typingDot 1.4s ease-in-out infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+
+/* Best answer */
+.ai-best-box{background:linear-gradient(135deg,rgba(196,154,42,.08),rgba(99,102,241,.05));border:1.5px solid rgba(196,154,42,.35);border-radius:16px;padding:18px;margin-bottom:18px;animation:scaleIn .4s cubic-bezier(.34,1.56,.64,1)}
+.ai-best-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ai-best-title{font-size:.82rem;font-weight:700;color:var(--gold)}
+.ai-best-from{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);margin-left:auto}
+.ai-best-body{font-size:.85rem;line-height:1.75;color:var(--ink)}
+.ai-score-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ai-score-pill{background:rgba(196,154,42,.1);border:1px solid rgba(196,154,42,.25);border-radius:20px;padding:3px 10px;font-size:.65rem;color:var(--gold);font-family:'DM Mono',monospace}
+
+/* All answers */
+.ai-answers-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.ai-answer-item{background:var(--warm);border:1.5px solid var(--border);border-radius:13px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;animation:fadeInUp .35s ease both}
+.ai-answer-item:hover{border-color:var(--ai1);transform:translateX(3px)}
+.ai-answer-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ai-answer-av{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.ai-answer-name{font-size:.8rem;font-weight:700}
+.ai-answer-score{margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;padding:3px 9px;border-radius:10px}
+.ai-answer-body{font-size:.78rem;line-height:1.65;color:var(--muted);max-height:70px;overflow:hidden;position:relative}
+.ai-answer-body.open{max-height:none}
+.ai-answer-body::after{content:'';position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,var(--warm));pointer-events:none}
+.ai-answer-body.open::after{display:none}
+.ai-expand{font-size:.68rem;color:var(--ai1);background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;margin-top:5px;padding:0;transition:color .2s}
+.ai-expand:hover{color:var(--ai2)}
+
+/* Empty state */
+.ai-empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.ai-empty-icon{font-size:2.8rem;display:block;margin-bottom:12px;animation:float 3s ease-in-out infinite}
+.ai-empty-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:6px;color:var(--ink)}
+.ai-empty-sub{font-size:.78rem;line-height:1.6}
+
+/* Stats bar */
+.ai-stats-row{display:flex;gap:8px;margin-bottom:18px}
+.ai-stat{background:var(--warm);border:1px solid var(--border);border-radius:11px;padding:10px;text-align:center;flex:1}
+.ai-stat-val{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ai1)}
+.ai-stat-lbl{font-size:.62rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+</style>
+<script>
+  (function(){
+    var t = localStorage.getItem('sn_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="lbox">
+    <div class="llogo">Study<em>Nest</em></div>
+    <div class="ltag">// YOUR PRIVATE STUDY SPACE</div>
+    <div class="ltabs">
+      <button class="ltab on" onclick="switchAuth('login',this)">Sign In</button>
+      <button class="ltab" onclick="switchAuth('register',this)">Register</button>
+    </div>
+    <div id="loginForm">
+      <input class="lf" id="lUser" placeholder="Username or Student ID" onkeydown="if(event.key==='Enter')doLogin()">
+      <input class="lf" id="lPass" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="lerr" id="lErr"></div>
+      <button class="lbtn" onclick="doLogin()">Sign In →</button>
+    </div>
+    <div id="regForm" style="display:none">
+      <div class="idhint">🪪 A unique Student ID is auto-generated — share it with friends to connect!</div>
+      <input class="lf" id="rName" placeholder="Full Name" onkeydown="if(event.key==='Enter')focusNext(this,'rUser')">
+      <input class="lf" id="rUser" placeholder="Username (unique)" onkeydown="if(event.key==='Enter')focusNext(this,'rPass')" oninput="checkUsernameAvail(this.value)">
+      <input class="lf" id="rPass" type="password" placeholder="Password (min 4 chars)" onkeydown="if(event.key==='Enter')doRegister()">
+      <div class="lerr" id="rErr"></div>
+      <button class="lbtn" onclick="doRegister()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<div class="wrap">
+  <div class="topbar animate-fade-down">
+    <div class="logo">Study<em>Nest</em></div>
+    <div class="topright">
+      <div class="clockpill" id="clock">00:00</div>
+      <div class="streakpill">🔥 <span id="streakNum">1</span> day streak</div>
+      <!-- AI Search Button -->
+      <button class="ai-trigger-btn" onclick="openAiPanel()">
+        <div class="ai-dot"></div>
+        🤖 Ask AI
+      </button>
+      <div class="userpill">
+        <div class="uav" id="topAv">A</div>
+        <div><div class="uname" id="topName">Alex</div><div class="uid2" id="topId">#SN-0001</div></div>
+      </div>
+      <button class="dmtog" id="dmBtn" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+      <button class="signout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- TIMER -->
+    <div class="card timer-card animate-fade-up d1">
+      <div class="clabel"><div class="dot" style="background:var(--moss)"></div>POMODORO TIMER</div>
+      <div class="tw">
+        <div class="ring-outer">
+          <svg viewBox="0 0 186 186">
+            <circle class="ring-bg" cx="93" cy="93" r="85"/>
+            <circle class="ring-prog" id="ringProg" cx="93" cy="93" r="85"/>
+          </svg>
+          <div class="ring-inner">
+            <div class="rtime" id="tDisp">25:00</div>
+            <div class="rlbl" id="tLbl">FOCUS</div>
+          </div>
+        </div>
+        <div class="mtabs">
+          <button class="mtab on" onclick="setMode(this,'focus',25)">Focus 25</button>
+          <button class="mtab" onclick="setMode(this,'short',5)">Break 5</button>
+          <button class="mtab" onclick="setMode(this,'long',15)">Long 15</button>
+          <button class="mtab" onclick="openOv('customOv')">Custom</button>
+        </div>
+        <div class="tctrls">
+          <button class="tbtn" onclick="resetTimer()">↺</button>
+          <button class="tbtn play" id="playBtn" onclick="toggleTimer()">▶</button>
+          <button class="tbtn" onclick="skipTimer()">⏭</button>
+        </div>
+        <div class="pdots" id="pdots">
+          <div class="pdot"></div><div class="pdot"></div>
+          <div class="pdot"></div><div class="pdot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="card stats-card animate-fade-up d2">
+      <div class="clabel"><div class="dot" style="background:var(--gold)"></div>TODAY'S PROGRESS</div>
+      <div class="sgrid">
+        <div class="stile"><div class="snum g" id="sFocus">0</div><div class="sname">Focus mins</div></div>
+        <div class="stile"><div class="snum o" id="sSess">0</div><div class="sname">Sessions</div></div>
+        <div class="stile"><div class="snum r" id="sDone">0</div><div class="sname">Tasks done</div></div>
+        <div class="stile"><div class="snum b" id="sTotal">0</div><div class="sname">Total tasks</div></div>
+      </div>
+      <div class="goalbox">
+        <div class="goaltop"><div class="goaltitle">Daily Goal — 4 sessions</div><div class="goalpct" id="goalPct">0%</div></div>
+        <div class="goalbar"><div class="goalfill" id="goalFill"></div></div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="card notif-card animate-fade-up d3">
+      <div class="nhead">
+        <div class="clabel" style="margin-bottom:0"><div class="dot" style="background:var(--rust)"></div>NOTIFICATIONS</div>
+        <button class="clrbtn" onclick="clearNotifs()">CLEAR ALL</button>
+      </div>
+      <div class="nscroll" id="notifList">
+        <div class="nitem task"><div class="nico">🌱</div><div class="nbody"><div class="ntitle">Welcome to StudyNest!</div><div class="ndesc">Your focus space is ready.</div><div class="ntime">Just now</div></div></div>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="card todo-card animate-fade-up d4">
+      <div class="clabel"><div class="dot" style="background:var(--sky)"></div>TASK LIST</div>
+      <div class="addrow">
+        <input class="ti" id="taskIn" placeholder="What needs to get done?" onkeydown="if(event.key==='Enter')addTask()">
+        <select class="prisel" id="priSel">
+          <option value="h">🔴 High</option>
+          <option value="m" selected>🟡 Medium</option>
+          <option value="l">🟢 Low</option>
+        </select>
+        <button class="addbtn" onclick="addTask()">＋ Add Task</button>
+      </div>
+      <div class="twrap" id="taskList">
+        <div class="emptyt"><span>📭</span>No tasks yet — add one above!</div>
+      </div>
+      <div class="tfoot">
+        <div class="prow">
+          <div class="pbar"><div class="pfill" id="pFill"></div></div>
+          <div class="plbl" id="pLbl">0 / 0</div>
+        </div>
+        <div class="sdot-wrap" onclick="openChatGate()" title="Reset App">
+          <div class="sdot" style="cursor:pointer;opacity:.5"></div>
+          <div id="chatBadge" class="chat-notif-badge" style="display:none">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- AI SEARCH PANEL -->
+<div id="aiPanel">
+  <div class="ai-header">
+    <div class="ai-header-top">
+      <div class="ai-logo">🤖</div>
+      <div>
+        <div class="ai-title">Study<em>AI</em></div>
+        <div class="ai-subtitle">MULTI-MODEL ANSWER COMPARISON</div>
+      </div>
+      <button class="ai-close" onclick="closeAiPanel()">✕</button>
+    </div>
+    <div class="ai-search-row">
+      <input class="ai-search-inp" id="aiSearchInp" placeholder="Ask any question — e.g. How does photosynthesis work?" onkeydown="if(event.key==='Enter')runAiSearch()">
+      <button class="ai-go-btn" id="aiGoBtn" onclick="runAiSearch()">Ask →</button>
+    </div>
+  </div>
+  <div class="ai-chips">
+    <span class="ai-chip" onclick="setAiQ('Explain quantum entanglement')">⚛️ Quantum</span>
+    <span class="ai-chip" onclick="setAiQ('What causes black holes?')">🌌 Black holes</span>
+    <span class="ai-chip" onclick="setAiQ('How does the immune system work?')">🦠 Immune system</span>
+    <span class="ai-chip" onclick="setAiQ('Explain machine learning simply')">🤖 Machine learning</span>
+    <span class="ai-chip" onclick="setAiQ('What is the Pythagorean theorem?')">📐 Pythagoras</span>
+    <span class="ai-chip" onclick="setAiQ('How to study effectively?')">📚 Study tips</span>
+  </div>
+  <div class="ai-body" id="aiBody">
+    <div class="ai-empty">
+      <span class="ai-empty-icon">🧠</span>
+      <div class="ai-empty-title">Ask anything!</div>
+      <div class="ai-empty-sub">Three AI models will race to answer your question, then we'll pick the best response for you.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT PANEL -->
+<div id="chatPanel">
+  <div class="cphead">
+    <div class="cpav" id="cpAv" style="background:var(--rust)">?</div>
+    <div class="cpinfo">
+      <div class="cpname" id="cpName">App Settings</div>
+      <div class="cpsub" id="cpSub">Manage your preferences</div>
+    </div>
+    <div class="blurpill" id="blurPill" style="display:none">60s</div>
+    <button class="cpclose" onclick="closeChatPanel()">✕</button>
+  </div>
+  <div class="cptabs">
+    <button class="cptab on" id="tabC" onclick="switchCpTab('contacts',this)">🔧 Options</button>
+    <button class="cptab" id="tabM" onclick="switchCpTab('chat',this)">📋 Notes</button>
+  </div>
+  <div id="cpContacts" class="carea">
+    <div class="sbar">
+      <input class="sinp" id="searchIn" placeholder="Search by ID or username…" onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="sbtn" onclick="doSearch()">Search</button>
+    </div>
+    <div id="searchResults"></div>
+    <div id="reqSec" style="display:none">
+      <div class="seclbl">📬 Pending Requests</div>
+      <div id="reqList"></div>
+    </div>
+    <div class="seclbl">📋 Saved Items</div>
+    <div id="friendList"><div class="emptyc"><span>🔍</span>Search above to get started.</div></div>
+  </div>
+  <div id="cpChat" class="chatview" style="display:none">
+    <div class="nocs" id="noChatSel"><span>📋</span>Select an item to view details.</div>
+    <div class="msgs" id="msgList" style="display:none;flex-direction:column"></div>
+    <div class="cinputrow" id="chatInputRow" style="display:none">
+      <input class="cinp" id="chatIn" placeholder="Add a note…" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="csend" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: GATE -->
+<div class="ov" id="gateOv" onclick="bgClose(event,'gateOv')">
+  <div class="modal">
+    <button class="mclose" onclick="closeOv('gateOv')">✕</button>
+    <span class="mico">⚙️</span>
+    <div class="mtitle" id="gateTitle">Reset App</div>
+    <div class="msub" id="gateSub">Enter your reset PIN to continue</div>
+    <input class="minp" id="gateIn" type="password" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter')checkGate()">
+    <div class="merr" id="gateErr"></div>
+    <button class="mbtn" id="gateBtn" onclick="checkGate()">Continue →</button>
+    <div class="hint" id="gateHint" style="margin-top:10px">This will reset your app preferences.</div>
+  </div>
+</div>
+
+<!-- MODAL: SET CHAT PASSWORD -->
+<div class="ov" id="setPwOv" onclick="bgClose(event,'setPwOv')">
+  <div class="modal">
+    <button class="mclose" onclick="closeOv('setPwOv')">✕</button>
+    <span class="mico">🔑</span>
+    <div class="mtitle">Set Reset PIN</div>
+    <div class="msub">Create a PIN to confirm app resets. Store it safely.</div>
+    <input class="minp" id="newPw1" type="password" placeholder="New PIN (4–8 chars)" maxlength="8" onkeydown="if(event.key==='Enter')focusNext(this,'newPw2')">
+    <input class="minp" id="newPw2" type="password" placeholder="Confirm PIN" maxlength="8" style="margin-top:4px" onkeydown="if(event.key==='Enter')saveNewPw()">
+    <div class="merr" id="setPwErr"></div>
+    <button class="mbtn" onclick="saveNewPw()">Save PIN & Continue →</button>
+  </div>
+</div>
+
+<!-- MODAL: CUSTOM TIMER -->
+<div class="ov" id="customOv" onclick="bgClose(event,'customOv')">
+  <div class="modal">
+    <button class="mclose" onclick="closeOv('customOv')">✕</button>
+    <span class="mico">⏱</span>
+    <div class="mtitle">Custom Timer</div>
+    <div class="msub">Set your own duration (1–180 min)</div>
+    <input class="minp" id="customMin" type="number" placeholder="25" min="1" max="180" onkeydown="if(event.key==='Enter')applyCustom()" style="letter-spacing:3px;font-size:1.3rem">
+    <div class="merr" id="customErr"></div>
+    <button class="mbtn" onclick="applyCustom()">Set Timer →</button>
+  </div>
+</div>
+
+<div class="banner" id="banner">📋 <span id="bannerTxt">New task added!</span></div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONFIG & STATE
+// ══════════════════════════════════════════
+const STORAGE_KEY_GATE = 'sn_gate_code';
+const STORAGE_KEY_BLUR = 'sn_blur_code';
+
+function getCSRF(){
+  return document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+}
+
+let GATE_CODE = null;
+let BLUR_CODE = null;
+let ME = null;
+let activeChat = null;
+let activeChatData = null;
+let blurTimer = null, blurLeft = 60, blurActive = false;
+let lastMsgTs = 0;
+let pollInt = null;
+let reqPollInt = null;
+let secretMsgCount = 0;
+let isFirstTime = false;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pad = n => String(n).padStart(2,'0');
+const nowT = () => new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+function focusNext(el, nextId) {
+  const next = $(nextId);
+  if(next) next.focus();
+}
+
+async function api(method, url, body){
+  try {
+    const opts = { method, credentials: 'same-origin', headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRF() } };
+    if(body) opts.body = JSON.stringify(body);
+    const r = await fetch(url, opts);
+    if(!r.ok && r.status === 403){
+      // FIX: Previous code did `await fetch('/')` which fetched the full HTML page
+      // and then tried to call `.json()` on it — crashing the page state (app reset).
+      // Correct fix: refresh only the CSRF cookie via a lightweight HEAD-style
+      // request to the CSRF endpoint, then retry the original call.
+      await fetch('/api/auth/me/', { method: 'GET', credentials: 'same-origin' });
+      const opts2 = { method, credentials: 'same-origin', headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRF() } };
+      if(body) opts2.body = JSON.stringify(body);
+      const r2 = await fetch(url, opts2);
+      return r2.json();
+    }
+    return r.json();
+  } catch(e) {
+    return { ok: false, error: 'Network error. Please try again.' };
+  }
+}
+
+setInterval(()=>{ $('clock').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); },1000);
+
+// ══════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════
+(async function boot(){
+  $('loginScreen').style.display='none';
+  try {
+    const d = await api('GET', '/api/auth/me/');
+    if(d && d.authenticated){ ME = d.user; launchApp(); return; }
+  } catch(e) {}
+  $('loginScreen').style.display='flex';
+})();
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+function switchAuth(mode, btn){
+  document.querySelectorAll('.ltab').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  $('loginForm').style.display = mode==='login' ? '' : 'none';
+  $('regForm').style.display   = mode==='register' ? '' : 'none';
+}
+
+let usernameCheckTimer = null;
+async function checkUsernameAvail(val){
+  clearTimeout(usernameCheckTimer);
+  val = (val||'').trim().toLowerCase();
+  const errEl = $('rErr');
+  if(val.length < 2){ errEl.textContent=''; errEl.style.color=''; return; }
+  usernameCheckTimer = setTimeout(async ()=>{
+    const d = await api('GET','/api/users/check/?username='+encodeURIComponent(val));
+    if(!d.ok) return;
+    if(!d.available){
+      errEl.style.color='var(--rust)';
+      errEl.textContent='✕ "@'+val+'" is taken — choose a different username.';
+    } else {
+      errEl.style.color='var(--moss)';
+      errEl.textContent='✓ "@'+val+'" is available!';
+      setTimeout(()=>{ if(errEl.textContent.startsWith('✓')){ errEl.textContent=''; errEl.style.color=''; } },2500);
+    }
+  }, 450);
+}
+
+async function doLogin(){
+  const username = ($('lUser').value || '').trim();
+  const password = $('lPass').value || '';
+  if(!username){ $('lErr').textContent='✕ Enter your username or Student ID.'; return; }
+  if(!password){ $('lErr').textContent='✕ Enter your password.'; return; }
+  $('lErr').textContent='Signing in…';
+  const d = await api('POST','/api/auth/login/',{username, password});
+  if(!d.ok){ $('lErr').textContent='✕ '+(d.error||'Sign in failed. Try again.'); return; }
+  $('lErr').textContent='';
+  ME = d.user;
+  launchApp();
+}
+
+async function doRegister(){
+  const name     = ($('rName').value || '').trim();
+  const username = ($('rUser').value || '').trim();
+  const password = $('rPass').value || '';
+  if(!name)    { $('rErr').textContent='✕ Enter your full name.'; return; }
+  if(!username){ $('rErr').textContent='✕ Choose a username.'; return; }
+  if(!password){ $('rErr').textContent='✕ Choose a password.'; return; }
+  $('rErr').textContent='Creating account…';
+  const d = await api('POST','/api/auth/register/',{ name, username, password });
+  if(!d.ok){ $('rErr').textContent='✕ '+(d.error||'Registration failed. Try again.'); return; }
+  $('rErr').textContent='';
+  ME = d.user;
+  launchApp();
+}
+
+async function doLogout(){
+  closeChatPanel(); closeAiPanel();
+  await api('POST','/api/auth/logout/');
+  ME=null; activeChat=null; blurActive=false;
+  clearInterval(blurTimer); clearInterval(pollInt); clearInterval(reqPollInt);
+  $('app').style.display='none';
+  $('loginScreen').style.display='flex';
+  $('chatPanel').classList.remove('open');
+}
+
+function loadUserCodes(){
+  const gk = STORAGE_KEY_GATE + '_' + ME.id;
+  const bk = STORAGE_KEY_BLUR + '_' + ME.id;
+  GATE_CODE = localStorage.getItem(gk);
+  BLUR_CODE = localStorage.getItem(bk) || '5678';
+  isFirstTime = !GATE_CODE;
+}
+
+function saveGateCode(code){
+  localStorage.setItem(STORAGE_KEY_GATE + '_' + ME.id, code);
+  GATE_CODE = code;
+  isFirstTime = false;
+}
+
+function launchApp(){
+  $('loginScreen').style.display='none';
+  $('app').style.display='block';
+  $('topAv').textContent = ME.name[0].toUpperCase();
+  $('topAv').style.background = ME.color;
+  $('topName').textContent = ME.name;
+  $('topId').textContent = '#'+ME.student_id;
+  loadUserCodes();
+  loadTasks(); loadStats();
+  renderFriends(); loadPendingReqs();
+  clearInterval(pollInt);
+  pollInt = setInterval(pollMessages, 2000);
+  clearInterval(reqPollInt);
+  reqPollInt = setInterval(()=>{ loadPendingReqs(); renderFriends(); }, 8000);
+  pushNotif('👋','Welcome back, '+ME.name.split(' ')[0]+'!','Ready to focus today?','task');
+  document.addEventListener('visibilitychange', onVisibilityChange);
+}
+
+function onVisibilityChange(){
+  if(document.hidden && $('chatPanel').classList.contains('open')){
+    closeChatPanel();
+  }
+}
+
+async function pollMessages(){
+  if(!ME) return;
+  if(!activeChat) return;
+  if(!$('chatPanel').classList.contains('open')) {
+    const d = await api('GET', `/api/messages/${activeChat}/?since=${lastMsgTs}`);
+    if(!d.ok || !d.messages.length) return;
+    let newCount = 0;
+    d.messages.forEach(m => {
+      if(m.ts > lastMsgTs){ lastMsgTs = m.ts; }
+      if(!m.is_me) newCount++;
+    });
+    if(newCount > 0){
+      secretMsgCount += newCount;
+      updateChatBadge();
+      pushNotif('📋','New Reminder!','You have '+secretMsgCount+' pending item'+(secretMsgCount>1?'s':'')+'!','task');
+      showBanner('📋 '+newCount+' new item reminder'+(newCount>1?'s':'')+'!');
+    }
+    return;
+  }
+  const d = await api('GET', `/api/messages/${activeChat}/?since=${lastMsgTs}`);
+  if(!d.ok || !d.messages.length) return;
+  const list = $('msgList');
+  const wasAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+  let gotNew = false;
+  d.messages.forEach(m => {
+    if(m.ts > lastMsgTs){ lastMsgTs = m.ts; }
+    if(!document.getElementById('msg-'+m.id)){
+      appendMsgEl(m);
+      gotNew = true;
+      if(!m.is_me){ pushNotif('📋','Task Update','A study task has been updated.','task'); }
+    }
+  });
+  if(gotNew && wasAtBottom) list.scrollTop = list.scrollHeight;
+  renderFriends();
+}
+
+function updateChatBadge(){
+  const badge = $('chatBadge');
+  if(secretMsgCount > 0){
+    badge.textContent = secretMsgCount > 9 ? '9+' : secretMsgCount;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════
+//  TIMER
+// ══════════════════════════════════════════
+const CIRC = 2*Math.PI*85;
+let tDur=25*60,tLeft=25*60,tRun=false,tInt=null,tMode='focus',sessComp=0;
+$('ringProg').style.strokeDasharray = CIRC;
+
+function updRing(){
+  $('ringProg').style.strokeDashoffset = CIRC*(1-tLeft/tDur);
+  $('tDisp').textContent = pad(Math.floor(tLeft/60))+':'+pad(tLeft%60);
+}
+function setMode(btn,m,mins){
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('on')); if(btn)btn.classList.add('on');
+  tMode=m; $('tLbl').textContent=m.toUpperCase();
+  const c={focus:'var(--moss)',short:'var(--sky)',long:'var(--gold)',custom:'var(--lav)'};
+  $('ringProg').style.stroke=c[m]||'var(--moss)';
+  resetTo(mins*60);
+}
+function resetTo(s){clearInterval(tInt);tRun=false;tDur=s;tLeft=s;$('playBtn').textContent='▶';$('playBtn').classList.remove('running');updRing();}
+function resetTimer(){resetTo(tDur);}
+function skipTimer(){onDone();}
+function toggleTimer(){
+  if(tRun){clearInterval(tInt);tRun=false;$('playBtn').textContent='▶';$('playBtn').classList.remove('running');}
+  else{tRun=true;$('playBtn').textContent='⏸';$('playBtn').classList.add('running');
+    tInt=setInterval(()=>{tLeft--;if(tLeft<=0)onDone();else updRing();},1000);}
+}
+async function onDone(){
+  clearInterval(tInt);tRun=false;tLeft=0;updRing();$('playBtn').textContent='▶';$('playBtn').classList.remove('running');
+  if(tMode==='focus'){
+    sessComp++;
+    const d=await api('POST','/api/sessions/complete/',{mode:tMode,duration:Math.floor(tDur/60)});
+    if(d.ok){
+      $('sSess').textContent=d.sessions_today;
+      $('sFocus').textContent=d.focus_mins;
+      const p=Math.min(100,Math.round(d.sessions_today/4*100));
+      $('goalFill').style.width=p+'%'; $('goalPct').textContent=p+'%';
+      document.querySelectorAll('.pdot').forEach((dot,i)=>dot.classList.toggle('lit',i<(d.sessions_today%4)));
+    }
+  }
+  pushNotif('⏰','Timer Complete!',tMode.toUpperCase()+' session finished.','timer');
+  beep(); setTimeout(()=>resetTo(tDur),800);
+}
+function applyCustom(){
+  const v=parseInt($('customMin').value);
+  if(!v||v<1||v>180){$('customErr').textContent='Enter 1–180 minutes';return;}
+  $('customErr').textContent='';
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.mtab')[3].classList.add('on');
+  setMode(null,'custom',v); closeOv('customOv');
+}
+function beep(){try{const ac=new AudioContext(),o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=660;g.gain.value=.25;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.6);o.start();o.stop(ac.currentTime+.6);}catch(e){}}
+
+// ══════════════════════════════════════════
+//  TASKS
+// ══════════════════════════════════════════
+async function loadTasks(){
+  const d = await api('GET','/api/tasks/');
+  if(!d.ok) return;
+  renderTasks(d.tasks);
+  $('sTotal').textContent = d.tasks.length;
+  $('sDone').textContent  = d.tasks.filter(t=>t.done).length;
+}
+
+async function addTask(){
+  const txt=($('taskIn').value||'').trim(); if(!txt) return;
+  const pri=$('priSel').value;
+  const d=await api('POST','/api/tasks/',{text:txt,priority:pri});
+  if(!d.ok){ showBanner('✕ Failed to add task'); return; }
+  $('taskIn').value='';
+  pushNotif('📋','New Task Added!',txt.substring(0,38),'task');
+  showBanner('"'+txt.substring(0,24)+'" added!');
+  loadTasks(); loadStats();
+}
+
+async function toggleTask(id, done){
+  const d = await api('PATCH',`/api/tasks/${id}/`,{done:!done});
+  if(!d.ok) return;
+  if(done===false) pushNotif('✅','Task Complete!','Great work!','task');
+  loadTasks(); loadStats();
+}
+
+async function delTask(id){
+  await api('DELETE',`/api/tasks/${id}/`);
+  loadTasks(); loadStats();
+}
+
+function renderTasks(tasks){
+  const l=$('taskList');
+  if(!tasks||!tasks.length){ l.innerHTML='<div class="emptyt"><span>📭</span>No tasks yet — add one above!</div>'; $('pFill').style.width='0%'; $('pLbl').textContent='0 / 0'; return; }
+  const done=tasks.filter(t=>t.done).length;
+  $('pFill').style.width=Math.round(done/tasks.length*100)+'%';
+  $('pLbl').textContent=done+' / '+tasks.length;
+  const mp={h:'ph',m:'pm',l:'pl'}, lp={h:'HIGH',m:'MED',l:'LOW'};
+  l.innerHTML=tasks.map(t=>`<div class="tcard ${t.done?'done-c':''}">
+    <div class="chk ${t.done?'ck':''}" onclick="toggleTask(${t.id},${t.done})">${t.done?'✓':''}</div>
+    <div class="tinfo"><div class="ttxt ${t.done?'stk':''}">${esc(t.text)}</div>
+    <div class="tmeta"><span class="pbadge ${mp[t.priority]||'pm'}">${lp[t.priority]||'MED'}</span></div></div>
+    <button class="delbtn" onclick="delTask(${t.id})">✕</button>
+  </div>`).join('');
+}
+
+async function loadStats(){
+  const d=await api('GET','/api/stats/');
+  if(!d.ok) return;
+  $('sFocus').textContent=d.focus_mins;
+  $('sSess').textContent=d.sessions;
+  $('sDone').textContent=d.tasks_done;
+  $('sTotal').textContent=d.tasks_total;
+  const p=Math.min(100,Math.round(d.sessions/4*100));
+  $('goalFill').style.width=p+'%'; $('goalPct').textContent=p+'%';
+  document.querySelectorAll('.pdot').forEach((dot,i)=>dot.classList.toggle('lit',i<(d.sessions%4)));
+}
+
+// ══════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════
+function pushNotif(icon,title,desc,type){
+  const l=$('notifList');
+  const el=document.createElement('div'); el.className='nitem '+type;
+  el.innerHTML=`<div class="nico">${icon}</div><div class="nbody"><div class="ntitle">${esc(title)}</div><div class="ndesc">${esc(desc)}</div><div class="ntime">${nowT()}</div></div>`;
+  l.insertBefore(el,l.firstChild); while(l.children.length>20) l.removeChild(l.lastChild);
+}
+function clearNotifs(){ $('notifList').innerHTML=''; }
+let bTO=null;
+function showBanner(txt){ const b=$('banner'); $('bannerTxt').textContent=txt; b.classList.add('in'); clearTimeout(bTO); bTO=setTimeout(()=>b.classList.remove('in'),3500); }
+
+// ══════════════════════════════════════════
+//  AI SEARCH PANEL
+// ══════════════════════════════════════════
+const AI_MODELS = [
+  {id:'gpt4',name:'GPT-4o',org:'OpenAI',icon:'🤖',color:'#10a37f',bg:'rgba(16,163,127,0.12)'},
+  {id:'claude',name:'Claude 3.5',org:'Anthropic',icon:'🧠',color:'#c49a2a',bg:'rgba(196,154,42,0.12)'},
+  {id:'gemini',name:'Gemini Pro',org:'Google',icon:'✨',color:'#4285f4',bg:'rgba(66,133,244,0.12)'}
+];
+let aiAnswers = {}, aiStartTime, aiBestModel;
+
+function openAiPanel(){
+  $('aiPanel').classList.add('open');
+  setTimeout(()=>$('aiSearchInp').focus(), 350);
+}
+function closeAiPanel(){ $('aiPanel').classList.remove('open'); }
+
+function setAiQ(q){
+  $('aiSearchInp').value = q;
+  $('aiSearchInp').focus();
+}
+
+async function runAiSearch(){
+  const q = ($('aiSearchInp').value||'').trim();
+  if(!q) return;
+  aiAnswers = {}; aiBestModel = null;
+  $('aiGoBtn').disabled = true;
+  aiStartTime = Date.now();
+
+  // Render loading state
+  $('aiBody').innerHTML = `
+    <div class="ai-models-label">AI MODELS SEARCHING…</div>
+    <div class="ai-models-row" id="aiModelsRow">
+      ${AI_MODELS.map(m=>`
+        <div class="ai-model-card thinking" id="aiCard-${m.id}">
+          <div class="ai-best-badge">BEST</div>
+          <div class="ai-model-icon">${m.icon}</div>
+          <div class="ai-model-name">${m.name}</div>
+          <div class="ai-model-org">${m.org}</div>
+          <div class="ai-model-status"><span class="typing-dots"><span></span><span></span><span></span></span></div>
+        </div>`).join('')}
+    </div>
+    <div id="aiResultsArea"></div>
+  `;
+
+  // Run all models in parallel
+  const promises = AI_MODELS.map(m => fetchAiAnswer(m, q));
+  await Promise.all(promises);
+  showAiResults(q);
+}
+
+async function fetchAiAnswer(model, question){
+  const card = $('aiCard-'+model.id);
+  // FIX: Previously this called https://api.anthropic.com/v1/messages directly
+  // from the browser — which is always blocked by CORS (browsers forbid cross-origin
+  // requests to api.anthropic.com). This caused every model to fail with a network
+  // error and show "This model encountered an issue answering your question."
+  //
+  // Fix: call our own Django backend endpoint /api/ai/search/ which proxies the
+  // request server-side (no CORS restrictions apply there).
+  try {
+    const d = await api('POST', '/api/ai/search/', {
+      question,
+      model_id: model.id,
+    });
+    if (!d.ok) throw new Error(d.error || 'API error');
+
+    const parsed = d;
+    parsed.model = model;
+    aiAnswers[model.id] = parsed;
+
+    if(card){
+      card.className = 'ai-model-card done';
+      card.querySelector('.ai-model-status').textContent = '✓ Done · '+parsed.total+'/10';
+    }
+  } catch(e){
+    aiAnswers[model.id] = {
+      answer: 'This model encountered an issue. Check that ANTHROPIC_API_KEY is set in your server environment.',
+      clarity_score:5, depth_score:5, accuracy_score:5, total:5,
+      key_points:['Set ANTHROPIC_API_KEY env variable','Restart the Django server','AI search will work instantly'],
+      model
+    };
+    if(card){
+      card.className = 'ai-model-card done';
+      card.querySelector('.ai-model-status').textContent = '⚠ Error';
+    }
+  }
+}
+
+function showAiResults(q){
+  const elapsed = ((Date.now()-aiStartTime)/1000).toFixed(1);
+  let best = null;
+  Object.values(aiAnswers).forEach(a=>{ if(!best||a.total>best.total) best=a; });
+  aiBestModel = best;
+
+  // Mark best card
+  AI_MODELS.forEach(m=>{
+    const card = $('aiCard-'+m.id);
+    if(!card) return;
+    if(aiAnswers[m.id]===best){
+      card.className='ai-model-card best';
+      card.querySelector('.ai-model-status').textContent = '🏆 Best · '+best.total+'/10';
+    }
+  });
+
+  const sorted = Object.values(aiAnswers).sort((a,b)=>b.total-a.total);
+  const res = $('aiResultsArea');
+
+  let html = `
+    <div class="ai-stats-row">
+      <div class="ai-stat"><div class="ai-stat-val">3</div><div class="ai-stat-lbl">Models</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">${elapsed}s</div><div class="ai-stat-lbl">Time</div></div>
+      <div class="ai-stat"><div class="ai-stat-val">${best?best.total+'/10':'—'}</div><div class="ai-stat-lbl">Best Score</div></div>
+    </div>`;
+
+  if(best){
+    html += `
+      <div class="ai-best-box">
+        <div class="ai-best-header">
+          <span style="font-size:1.2rem">🏆</span>
+          <span class="ai-best-title">Best Answer</span>
+          <span class="ai-best-from">${best.model.name} · ${best.model.org}</span>
+        </div>
+        <div class="ai-best-body">${esc(best.answer)}</div>
+        <div class="ai-score-row">
+          <span class="ai-score-pill">Clarity ${best.clarity_score}/10</span>
+          <span class="ai-score-pill">Depth ${best.depth_score}/10</span>
+          <span class="ai-score-pill">Accuracy ${best.accuracy_score}/10</span>
+          ${(best.key_points||[]).map(p=>`<span class="ai-score-pill">• ${esc(p)}</span>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  html += `<div class="ai-answers-label">ALL MODEL ANSWERS</div>`;
+  sorted.forEach((a,i)=>{
+    const sc = a.total>=8?'var(--moss)':a.total>=6?'var(--gold)':'var(--rust)';
+    const sbg= a.total>=8?'rgba(74,103,65,.1)':a.total>=6?'rgba(196,154,42,.1)':'rgba(196,81,42,.1)';
+    html += `
+      <div class="ai-answer-item" style="animation-delay:${i*0.08}s">
+        <div class="ai-answer-hd">
+          <div class="ai-answer-av" style="background:${a.model.bg}">${a.model.icon}</div>
+          <div>
+            <div class="ai-answer-name">${a.model.name}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted)">${a.model.org}</div>
+          </div>
+          <div class="ai-answer-score" style="color:${sc};background:${sbg};border:1px solid ${sc}30">${a.total}/10</div>
+        </div>
+        <div class="ai-answer-body" id="aab-${a.model.id}">${esc(a.answer)}</div>
+        <button class="ai-expand" onclick="toggleAiAnswer('aab-${a.model.id}',this)">Show more ↓</button>
+      </div>`;
+  });
+
+  res.innerHTML = html;
+  $('aiGoBtn').disabled = false;
+  pushNotif('🤖','AI Search Complete!','Best answer found from '+best?.model.name+'.','req');
+}
+
+function toggleAiAnswer(id, btn){
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+  btn.textContent = el.classList.contains('open') ? 'Show less ↑' : 'Show more ↓';
+}
+
+// ══════════════════════════════════════════
+//  CHAT PANEL — GATE
+// ══════════════════════════════════════════
+function openChatGate(){
+  if(isFirstTime || !GATE_CODE){
+    $('gateTitle').textContent = 'Reset App';
+    $('gateSub').textContent   = 'You don\'t have a PIN yet. Create one to confirm resets.';
+    $('gateBtn').textContent   = 'I don\'t have a PIN yet →';
+    $('gateIn').placeholder    = '••••';
+    $('gateHint').innerHTML    = '👆 No PIN yet? Click the button below to create one.';
+    $('gateBtn').onclick = function(){ closeOv('gateOv'); openOv('setPwOv'); setTimeout(()=>$('newPw1').focus(),280); };
+    openOv('gateOv');
+  } else {
+    $('gateTitle').textContent = 'Reset App';
+    $('gateSub').textContent   = 'Enter your PIN to continue';
+    $('gateBtn').textContent   = 'Continue →';
+    $('gateHint').innerHTML    = 'This will reset your app preferences.';
+    $('gateBtn').onclick = checkGate;
+    $('gateIn').value          = '';
+    $('gateErr').textContent   = '';
+    openOv('gateOv');
+  }
+}
+
+function checkGate(){
+  if(!GATE_CODE){ closeOv('gateOv'); openOv('setPwOv'); setTimeout(()=>$('newPw1').focus(),280); return; }
+  if($('gateIn').value === GATE_CODE){
+    closeOv('gateOv'); openChatPanel();
+  } else {
+    $('gateIn').classList.add('err'); $('gateErr').textContent='✕ Incorrect PIN';
+    setTimeout(()=>$('gateIn').classList.remove('err'),500);
+  }
+}
+
+function saveNewPw(){
+  const p1 = $('newPw1').value;
+  const p2 = $('newPw2').value;
+  if(!p1 || p1.length < 4){ $('setPwErr').textContent='Code must be at least 4 characters.'; return; }
+  if(p1 !== p2){ $('setPwErr').textContent='Codes do not match. Try again.'; return; }
+  $('setPwErr').textContent='';
+  saveGateCode(p1);
+  localStorage.setItem(STORAGE_KEY_BLUR + '_' + ME.id, BLUR_CODE || '5678');
+  $('newPw1').value=''; $('newPw2').value='';
+  closeOv('setPwOv');
+  openChatPanel();
+  pushNotif('⚙️','Settings Saved!','Your preferences have been updated.','task');
+  showBanner('✅ Settings saved!');
+}
+
+function openChatPanel(){
+  $('chatPanel').classList.add('open');
+  secretMsgCount = 0;
+  updateChatBadge();
+  startBlurTimer();
+}
+
+function closeChatPanel(){ $('chatPanel').classList.remove('open'); clearInterval(blurTimer); }
+
+function switchCpTab(tab,btn){
+  document.querySelectorAll('.cptab').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  $('cpContacts').style.display=tab==='contacts'?'':'none';
+  $('cpChat').style.display=tab==='chat'?'flex':'none';
+}
+
+// ── SEARCH ──
+async function doSearch(){
+  const q=($('searchIn').value||'').trim();
+  const res=$('searchResults'); res.innerHTML=''; if(!q) return;
+  const d=await api('GET',`/api/users/search/?q=${encodeURIComponent(q)}`);
+  if(!d.ok||!d.users.length){ res.innerHTML='<div class="emptyc"><span>🔍</span>No users found.</div>'; return; }
+  res.innerHTML=d.users.map(u=>{
+    const rel=u.relation;
+    let btn='';
+    if(rel==='friend')            btn=`<button class="srbtn chatbtn" onclick="openConvById(${u.id})">📋 Notes</button>`;
+    else if(rel==='pending_sent') btn=`<button class="srbtn pend" disabled>Pending…</button>`;
+    else if(rel==='pending_recv') btn=`<button class="srbtn acc" onclick="acceptReq(${u.id})">✓ Accept</button>`;
+    else                          btn=`<button class="srbtn add" onclick="sendReq(${u.id})">+ Add</button>`;
+    return `<div class="sres"><div class="srav" style="background:${u.color}">${u.name[0]}</div>
+      <div class="srinfo"><div class="srname">${esc(u.name)}</div><div class="srid">#${u.student_id} · @${u.username}</div></div>${btn}</div>`;
+  }).join('');
+}
+
+async function sendReq(toId){
+  const d=await api('POST','/api/requests/send/',{to_id:toId});
+  if(!d.ok){ showBanner('✕ Could not complete action.'); return; }
+  pushNotif('📋','Request Sent!','Study buddy request has been sent.','task');
+  doSearch();
+}
+
+async function acceptReq(fromId){
+  const d=await api('POST','/api/requests/respond/',{from_id:fromId,action:'accept'});
+  if(!d.ok) return;
+  pushNotif('📋','New Buddy!','New study session ready to start!','task');
+  showBanner('📋 New study buddy added!');
+  doSearch(); renderFriends(); loadPendingReqs();
+}
+
+async function rejectReq(fromId){
+  await api('POST','/api/requests/respond/',{from_id:fromId,action:'reject'});
+  loadPendingReqs(); renderFriends();
+}
+
+async function loadPendingReqs(){
+  const d=await api('GET','/api/requests/pending/');
+  if(!d.ok) return;
+  const sec=$('reqSec'), list=$('reqList');
+  if(!d.requests.length){ sec.style.display='none'; return; }
+  sec.style.display='';
+  const prevCount = parseInt(sec.dataset.count||'0');
+  if(d.requests.length > prevCount && prevCount > 0){
+    pushNotif('📋','New Request!','A new study buddy request arrived.','task');
+    showBanner('📋 New buddy request!');
+  }
+  sec.dataset.count = d.requests.length;
+  list.innerHTML=d.requests.map(u=>`<div class="rrow">
+    <div class="crav" style="background:${u.color}">${u.name[0]}</div>
+    <div class="crinfo"><div class="crname">${esc(u.name)}</div><div class="crprev" style="font-family:'DM Mono',monospace;font-size:.58rem">#${u.student_id}</div></div>
+    <div class="ract"><button class="racc" onclick="acceptReq(${u.id})">✓</button><button class="rrej" onclick="rejectReq(${u.id})">✕</button></div></div>`).join('');
+}
+
+async function renderFriends(){
+  const d=await api('GET','/api/friends/');
+  if(!d.ok) return;
+  const list=$('friendList');
+  if(!d.friends.length){ list.innerHTML='<div class="emptyc"><span>🔍</span>No friends yet. Search above!</div>'; return; }
+  list.innerHTML=d.friends.map(u=>`<div class="crow ${activeChat===u.id?'arow':''}" onclick="openConvById(${u.id})">
+    <div class="crav" style="background:${u.color}">${u.name[0]}</div>
+    <div class="crinfo"><div class="crname">${esc(u.name)}</div>
+    <div class="crprev">${u.last_msg?esc(u.last_msg):'No notes yet.'}</div></div></div>`).join('');
+}
+
+// ── CONVERSATION ──
+async function openConvById(uid){
+  activeChat=uid;
+  const d=await api('GET','/api/friends/');
+  activeChatData = d.friends?.find(f=>f.id===uid) || null;
+  renderFriends();
+  document.querySelectorAll('.cptab').forEach(b=>b.classList.remove('on'));
+  $('tabM').classList.add('on');
+  $('cpContacts').style.display='none';
+  $('cpChat').style.display='flex';
+  if(activeChatData){
+    $('cpAv').textContent=activeChatData.name[0]; $('cpAv').style.background=activeChatData.color;
+    $('cpName').textContent=activeChatData.name; $('cpSub').textContent='#'+activeChatData.student_id+' · @'+activeChatData.username;
+  }
+  $('blurPill').style.display='';
+  $('noChatSel').style.display='none';
+  const ml=$('msgList'); ml.style.display='flex'; ml.style.flexDirection='column';
+  $('chatInputRow').style.display='flex';
+  await loadAllMsgs();
+  startBlurTimer();
+  setTimeout(()=>$('chatIn').focus(),100);
+}
+
+async function loadAllMsgs(){
+  if(!activeChat) return;
+  const d=await api('GET',`/api/messages/${activeChat}/`);
+  if(!d.ok) return;
+  const list=$('msgList'); list.innerHTML='';
+  lastMsgTs = 0;
+  if(!d.messages.length){ list.innerHTML='<div style="text-align:center;color:var(--muted);font-size:.8rem;padding:24px;align-self:center">👋 Say hello to start!</div>'; return; }
+  d.messages.forEach(m=>{ if(m.ts > lastMsgTs) lastMsgTs=m.ts; appendMsgEl(m); });
+  list.scrollTop=list.scrollHeight;
+}
+
+function appendMsgEl(m){
+  const list=$('msgList');
+  if(document.getElementById('msg-'+m.id)) return;
+  const el=document.createElement('div');
+  el.className='msg '+(m.is_me?'me':'them')+(blurActive?' blurred':'');
+  el.id='msg-'+m.id;
+  if(blurActive) el.setAttribute('onclick','focusUnlock()');
+  el.innerHTML=esc(m.text)+'<div class="mtime">'+m.time+(m.is_me?'':' · '+esc((activeChatData?.name||'').split(' ')[0]))+'</div>';
+  const ui=document.getElementById('uinline');
+  if(ui) list.insertBefore(el,ui); else list.appendChild(el);
+}
+
+// ── BLUR TIMER ──
+function startBlurTimer(){
+  clearInterval(blurTimer); blurLeft=60; blurActive=false;
+  document.querySelectorAll('#msgList .msg').forEach(m=>{ m.classList.remove('blurred'); m.removeAttribute('onclick'); });
+  const ui=document.getElementById('uinline'); if(ui) ui.remove();
+  updBlurPill();
+  blurTimer=setInterval(()=>{ blurLeft--; updBlurPill(); if(blurLeft<=0){ clearInterval(blurTimer); activateBlur(); } },1000);
+}
+function updBlurPill(){
+  const p=$('blurPill'); p.textContent=blurLeft+'s'; p.classList.toggle('red',blurLeft<=10);
+}
+function activateBlur(){
+  blurActive=true;
+  document.querySelectorAll('#msgList .msg').forEach(m=>{ m.classList.add('blurred'); m.setAttribute('onclick','focusUnlock()'); });
+  appendUnlockUI(); $('blurPill').textContent='🔒';
+}
+function appendUnlockUI(){
+  const list=$('msgList'); const old=document.getElementById('uinline'); if(old) old.remove();
+  const el=document.createElement('div'); el.className='uinline'; el.id='uinline';
+  el.innerHTML=`<div class="uititle">🔒 Messages Blurred</div>
+    <div class="uisub">Auto-locked every 60s.<br>Click any message or enter code.</div>
+    <div class="uirow">
+      <input class="uiinp" id="ulIn" type="password" placeholder="••••" maxlength="8" onkeydown="if(event.key==='Enter')doUnlock()">
+      <button class="uibtn" onclick="doUnlock()">Unlock</button>
+    </div>
+    <div class="uierr" id="ulErr"></div>`;
+  list.appendChild(el); list.scrollTop=list.scrollHeight;
+  setTimeout(()=>{ const i=$('ulIn'); if(i) i.focus(); },80);
+}
+function focusUnlock(){ const i=$('ulIn'); if(i) i.focus(); }
+function doUnlock(){
+  const v=($('ulIn')||{}).value;
+  const code = BLUR_CODE || GATE_CODE;
+  if(v===code){
+    blurActive=false;
+    document.querySelectorAll('#msgList .msg.blurred').forEach(m=>{ m.classList.remove('blurred'); m.removeAttribute('onclick'); });
+    const ui=document.getElementById('uinline'); if(ui) ui.remove();
+    startBlurTimer();
+  } else {
+    const i=$('ulIn'); if(i){ i.classList.add('err'); setTimeout(()=>i.classList.remove('err'),500); }
+    const e=$('ulErr'); if(e) e.textContent='✕ Wrong code';
+  }
+}
+
+async function sendMsg(){
+  const inp=$('chatIn'); const txt=(inp.value||'').trim(); if(!txt||!activeChat) return;
+  inp.value='';
+  const d=await api('POST',`/api/messages/${activeChat}/`,{text:txt});
+  if(!d.ok) return;
+  if(d.message.ts > lastMsgTs) lastMsgTs = d.message.ts;
+  appendMsgEl(d.message);
+  $('msgList').scrollTop=$('msgList').scrollHeight;
+  renderFriends();
+}
+
+// ══════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════
+function openOv(id){ $(id).classList.add('show'); setTimeout(()=>{ const i=document.querySelector('#'+id+' input'); if(i) i.focus(); },280); }
+function closeOv(id){ $(id).classList.remove('show'); }
+function bgClose(e,id){ if(e.target===$(id)) closeOv(id); }
+
+// ══════════════════════════════════════════
+//  DARK MODE
+// ══════════════════════════════════════════
+(function initDark(){
+  const saved = localStorage.getItem('sn_theme') || 'light';
+  applyTheme(saved);
+})();
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = $('dmBtn');
+  if(btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  localStorage.setItem('sn_theme', theme);
+}
+
+function toggleDark(){
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+</script>
+</body>
+</html>
